@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Future You</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- Supabase client via CDN — no npm install needed -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="phone">
+
+    <!-- AUTH SCREEN -->
+    <div id="screen-auth" class="screen">
+      <div class="content">
+        <div class="eyebrow">FUTURE YOU</div>
+        <h1>Your morning voice<br>keeps you honest.</h1>
+        <p class="sub">Sign up or log in to start.</p>
+        <input id="auth-email" type="email" placeholder="Email" class="input" />
+        <input id="auth-password" type="password" placeholder="Password" class="input" />
+        <div id="auth-error" class="error-text"></div>
+        <button id="btn-signup" class="btn btn-primary">Sign up</button>
+        <button id="btn-login" class="btn btn-secondary">Log in</button>
+      </div>
+    </div>
+
+    <!-- ONBOARDING SCREEN -->
+    <div id="screen-onboarding" class="screen hidden">
+      <div class="content scroll">
+        <div class="eyebrow">FUTURE YOU</div>
+        <h1>Set up your tasks</h1>
+        <p class="sub">Each task gets its own record time and check-in time.</p>
+        <div id="onboarding-task-list"></div>
+        <div class="add-task-box">
+          <input id="new-task-label" type="text" placeholder="e.g. Make a video" class="input" />
+          <div class="time-row">
+            <div class="time-field">
+              <label>Record at</label>
+              <input id="new-task-record-time" type="time" class="input input-time accent-record" />
+            </div>
+            <div class="time-field">
+              <label>Check in at</label>
+              <input id="new-task-checkin-time" type="time" class="input input-time accent-checkin" />
+            </div>
+          </div>
+          <button id="btn-add-task" class="btn btn-outline">+ Add task</button>
+        </div>
+        <button id="btn-finish-onboarding" class="btn btn-primary sticky-bottom">Start tracking</button>
+      </div>
+    </div>
+
+    <!-- HOME SCREEN -->
+    <div id="screen-home" class="screen hidden">
+      <div class="content scroll">
+        <div class="eyebrow">TODAY</div>
+        <h1>Your tasks</h1>
+        <div class="hero-number" id="home-hero-streak">0</div>
+        <div class="hero-label">day streak going</div> 
+        <div id="reminder-banner" class="banner hidden"></div>
+        <div id="home-task-list"></div>
+      </div>
+      <div class="bottom-nav">
+        <button class="nav-btn active" data-tab="home">Home</button>
+        <button class="nav-btn" data-tab="progress">Progress</button>
+        <button class="nav-btn" data-tab="settings">Settings</button>
+      </div>
+    </div>
+
+    <!-- PROGRESS SCREEN -->
+    <div id="screen-progress" class="screen hidden">
+      <div class="content scroll">
+        <div class="eyebrow">YOUR MOMENTUM</div>
+        <h1>Progress</h1>
+        <div class="hero-number" id="progress-hero-total">0</div>
+        <div class="hero-label">promises kept this week</div>  
+        <div id="progress-list"></div>
+      </div>
+      <div class="bottom-nav">
+        <button class="nav-btn" data-tab="home">Home</button>
+        <button class="nav-btn active" data-tab="progress">Progress</button>
+        <button class="nav-btn" data-tab="settings">Settings</button>
+      </div>
+    </div>
+
+    <!-- SETTINGS SCREEN -->
+    <div id="screen-settings" class="screen hidden">
+  <div class="content scroll">
+    <div class="eyebrow">CONFIGURE</div>
+    <h1>Settings</h1>
+    <div id="settings-task-list"></div>
+
+    <div class="add-task-box">
+      <input id="settings-new-task-label" type="text" placeholder="e.g. Make a video" class="input" />
+      <div class="time-row">
+        <div class="time-field">
+          <label>Record at</label>
+          <input id="settings-new-task-record-time" type="time" class="input input-time accent-record" />
+        </div>
+        <div class="time-field">
+          <label>Check in at</label>
+          <input id="settings-new-task-checkin-time" type="time" class="input input-time accent-checkin" />
+        </div>
+      </div>
+      <button id="btn-settings-add-task" class="btn btn-outline">+ Add task</button>
+    </div>
+
+    <button id="btn-logout" class="btn btn-outline">Log out</button>
+  </div>
+      <div class="bottom-nav">
+        <button class="nav-btn" data-tab="home">Home</button>
+        <button class="nav-btn" data-tab="progress">Progress</button>
+        <button class="nav-btn active" data-tab="settings">Settings</button>
+      </div>
+    </div>
+
+    <!-- RECORD OVERLAY -->
+    <div id="overlay-record" class="overlay hidden">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="eyebrow accent-record" id="record-time-label"></div>
+        <h2 id="record-task-label">Record task</h2>
+        <p class="sub">Say what you plan to do — keep it short.</p>
+        <div class="record-box">
+          <div id="record-waveform" class="waveform"></div>
+          <div id="record-timer" class="timer">00:00</div>
+          <button id="btn-mic" class="mic-btn">
+            <span id="mic-icon">●</span>
+          </button>
+          <div id="record-status" class="status-text hidden">Saved ✓</div>
+        </div>
+        <button id="btn-record-done" class="btn btn-primary" disabled>Done</button>
+        <button id="btn-record-cancel" class="btn btn-text">Cancel</button>
+      </div>
+    </div>
+
+    <!-- CHECK-IN OVERLAY -->
+    <div id="overlay-checkin" class="overlay hidden">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="eyebrow accent-checkin" id="checkin-time-label"></div>
+        <h2 id="checkin-task-label">Check in</h2>
+        <div class="playback-box">
+          <button id="btn-play" class="play-btn">▶</button>
+          <div id="checkin-waveform" class="waveform"></div>
+        </div>
+        <audio id="playback-audio"></audio>
+        <div id="checkin-question" class="hidden">
+          <p class="sub">Did you get to it?</p>
+          <div class="reason-row">
+            <button class="btn btn-yesno" data-answer="yes">✓ Yes</button>
+            <button class="btn btn-yesno" data-answer="no">✕ Not yet</button>
+          </div>
+          <div id="reason-picker" class="reason-picker hidden">
+            <p class="sub">What got in the way?</p>
+            <button class="btn btn-reason" data-reason="tired">Too tired</button>
+            <button class="btn btn-reason" data-reason="forgot">Forgot</button>
+            <button class="btn btn-reason" data-reason="distracted">Got distracted</button>
+            <button class="btn btn-reason" data-reason="busy">Ran out of time</button>
+          </div>
+          <button id="btn-checkin-save" class="btn btn-primary" disabled>Save</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
