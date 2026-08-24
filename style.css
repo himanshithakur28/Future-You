@@ -58,77 +58,32 @@ body {
 }
 
 body {
+  margin: 0;
+  padding: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(
-      circle at 50% 0%,
-      rgba(242, 160, 123, 0.08),
-      transparent 35%
-    ),
-    radial-gradient(
-      circle at 100% 100%,
-      rgba(212, 119, 104, 0.06),
-      transparent 30%
-    ),
-    var(--bg-deep);
-
+  background: var(--bg-deep);
   display: flex;
-  align-items: center;
   justify-content: center;
-
-  padding: 20px;
-
   font-family: var(--font-body);
   color: var(--text);
 }
 
-/* =========================================================
-   PHONE / APP FRAME
-   ========================================================= */
-
 .phone {
-  width: 390px;
-  height: 760px;
-
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
   position: relative;
   overflow: hidden;
-
   display: flex;
   flex-direction: column;
-
   background:
-    radial-gradient(
-      circle at 85% 5%,
-      rgba(242, 160, 123, 0.055),
-      transparent 30%
-    ),
-    radial-gradient(
-      circle at 10% 85%,
-      rgba(212, 119, 104, 0.045),
-      transparent 30%
-    ),
+    radial-gradient(circle at 85% 5%, rgba(242, 160, 123, 0.055), transparent 30%),
+    radial-gradient(circle at 10% 85%, rgba(212, 119, 104, 0.045), transparent 30%),
     var(--bg);
-
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 36px;
-
-  box-shadow:
-    0 40px 100px rgba(0, 0, 0, 0.65),
-    0 0 0 1px rgba(255, 255, 255, 0.025);
-
-  animation: appAppear 0.7s ease both;
-}
-
-@keyframes appAppear {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  animation: appAppear 0.5s ease both;
 }
 
 /* =========================================================
