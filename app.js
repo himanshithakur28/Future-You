@@ -66,27 +66,6 @@ async function enablePushNotifications() {
   }
 }
 
-  const registration = await navigator.serviceWorker.ready;
-  const subscription = await registration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-  });
-
-  // Save this subscription to Supabase so we can send to it later
-  const { error } = await supabaseClient.from("push_subscriptions").upsert(
-    {
-      user_id: state.user.id,
-      subscription: subscription.toJSON(),
-    },
-    { onConflict: "user_id" }
-  );
-
-  if (error) {
-    console.error("Could not save subscription:", error);
-  } else {
-    console.log("Push subscription saved!");
-  }
-
 
 // ============================================================
 // 2. APP STATE
