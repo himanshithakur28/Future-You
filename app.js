@@ -14,7 +14,56 @@ const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
+ 
+const VAPID_PUBLIC_KEY = "BA_oTrvbbhNMHSz0uHlbb3JHAmpwc2ogvKQpmSsIxMesZik9bbniuzJtGzwxsUBaF1O87MhfmClYYfgTolALl7k";
 
+async function registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('Service worker registered:', registration);
+      return registration;
+    } catch (error) {
+      console.error('Service worker registration failed:', error);
+    }
+  }
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+}
+
+async function enablePushNotifications() {
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') {
+    alert('Notifications need to be allowed for check-in reminders to work.');
+    return;
+  }
+
+  const registration = await navigator.serviceWorker.ready;
+  const subscription = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+  });
+
+  // Save this subscription to Supabase so we can send to it later
+  const { error } = await supabaseClient.from("push_subscriptions").upsert(
+    {
+      user_id: state.user.id,
+      subscription: subscription.toJSON(),
+    },
+    { onConflict: "user_id" }
+  );
+
+  if (error) {
+    console.error("Could not save subscription:", error);
+  } else {
+    console.log("Push subscription saved!");
+  }
+}
 
 // ============================================================
 // 2. APP STATE
@@ -330,6 +379,10 @@ document
   .getElementById("btn-login")
   .addEventListener("click", login);
 
+document.getElementById("btn-enable-notifications").addEventListener("click", async () => {
+  await registerServiceWorker();
+  await enablePushNotifications();
+});
 
 document
   .getElementById("btn-logout")
