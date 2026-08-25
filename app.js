@@ -86,7 +86,7 @@ async function enablePushNotifications() {
   } else {
     console.log("Push subscription saved!");
   }
-}
+
 
 // ============================================================
 // 2. APP STATE
