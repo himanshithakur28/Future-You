@@ -35,13 +35,36 @@ function urlBase64ToUint8Array(base64String) {
   const rawData = atob(base64);
   return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
 }
-
 async function enablePushNotifications() {
+  alert("Button clicked, function started");
+
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') {
     alert('Notifications need to be allowed for check-in reminders to work.');
     return;
   }
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+
+    const { error } = await supabaseClient.from("push_subscriptions").upsert(
+      { user_id: state.user.id, subscription: subscription.toJSON() },
+      { onConflict: "user_id" }
+    );
+
+    if (error) {
+      alert("DB SAVE ERROR: " + JSON.stringify(error));
+    } else {
+      alert("Push subscription saved successfully!");
+    }
+  } catch (err) {
+    alert("SUBSCRIBE ERROR: " + err.message);
+  }
+}
 
   const registration = await navigator.serviceWorker.ready;
   const subscription = await registration.pushManager.subscribe({
