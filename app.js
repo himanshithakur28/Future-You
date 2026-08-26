@@ -36,11 +36,8 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
 }
 async function enablePushNotifications() {
-  alert("Button clicked, function started");
-
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') {
-    alert('Notifications need to be allowed for check-in reminders to work.');
     return;
   }
 
@@ -57,12 +54,13 @@ async function enablePushNotifications() {
     );
 
     if (error) {
-      alert("DB SAVE ERROR: " + JSON.stringify(error));
+      console.error("Could not save subscription:", error);
     } else {
-      alert("Push subscription saved successfully!");
+      showToast("🔔 Notifications enabled");
     }
+    
   } catch (err) {
-    alert("SUBSCRIBE ERROR: " + err.message);
+    console.error("Subscribe error:", err);
   }
 }
 
@@ -2363,3 +2361,25 @@ async function init() {
 
 
 init();
+
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #26211C;
+    color: #f5eee6;
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: 1px solid #3a322a;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    z-index: 999;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
