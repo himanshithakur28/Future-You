@@ -2263,6 +2263,29 @@ supabaseClient.auth.onAuthStateChange(
 // ============================================================
 // 26. INITIALIZE
 // ============================================================
+async function handleNotificationDeepLink() {
+  const params = new URLSearchParams(window.location.search);
+  const taskId = params.get("task");
+  const action = params.get("action");
+
+  if (!taskId || !action) return;
+
+  const task = state.tasks.find((t) => t.id === taskId);
+  if (!task) return;
+
+  if (action === "record") {
+    openRecordOverlay(task);
+  } else if (action === "checkin") {
+    const entry = state.todayEntries[taskId];
+    if (entry?.audioUrl) {
+      openCheckinOverlay(task, entry.audioUrl);
+    }
+  }
+
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+  // ...your existing init function stays here
 
 async function init() {
 
@@ -2301,6 +2324,7 @@ async function init() {
         data.session.user;
 
       await afterLogin();
+      await handleNotificationDeepLink();
 
     } else {
 

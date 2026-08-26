@@ -12,7 +12,9 @@ const supabase = createClient(supabaseUrl, serviceRoleKey);
 
 function nowMinutes() {
   const now = new Date();
-  return now.getHours() * 60 + now.getMinutes();
+  const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+  const istOffset = 330; // IST is UTC+5:30 = 330 minutes ahead
+  return (utcMinutes + istOffset) % 1440;
 }
 function timeToMinutes(t: string) {
   const [h, m] = t.split(":").map(Number);
@@ -25,12 +27,16 @@ function todayString() {
 Deno.serve(async () => {
   const today = todayString();
   const currentMinutes = nowMinutes();
+  const debugUTC = new Date().toISOString();
+  console.log("Calculated IST minutes:", currentMinutes, "| Raw UTC time:", debugUTC);
 
-  const { data: goals } = await supabase.from("goals").select("*");
-  const { data: subs } = await supabase.from("push_subscriptions").select("*");
-  const { data: entries } = await supabase.from("daily_entries").select("*, goal_completions(*)").eq("date", today);
+  const { data: goals, error: goalsError } = await supabase.from("goals").select("*");
+const { data: subs, error: subsError } = await supabase.from("push_subscriptions").select("*");
+const { data: entries, error: entriesError } = await supabase.from("daily_entries").select("*, goal_completions(*)").eq("date", today);
 
-  let sent = 0;
+console.log("Goals error:", goalsError, "Subs error:", subsError, "Entries error:", entriesError);
+console.log("Goals found:", goals?.length, "Subs found:", subs?.length, "Entries found:", entries?.length);
+ let sent = 0;
 
   for (const goal of goals || []) {
     const sub = subs?.find((s) => s.user_id === goal.user_id);
@@ -41,9 +47,9 @@ Deno.serve(async () => {
     const completion = Array.isArray(entry?.goal_completions) ? entry?.goal_completions[0] : entry?.goal_completions;
     const isCompleted = completion?.completed !== undefined && completion?.completed !== null;
 
-    const recordDue = currentMinutes === timeToMinutes(goal.record_time) && !hasRecording;
-    const checkinDue = currentMinutes === timeToMinutes(goal.checkin_time) && hasRecording && !isCompleted;
-
+    const recordDue = currentMinutes >= timeToMinutes(goal.record_time) && !hasRecording;
+    const checkinDue = currentMinutes >= timeToMinutes(goal.checkin_time) && hasRecording && !isCompleted;
+    
     let payload = null;
     if (recordDue) {
       payload = { title: "Future You", body: `Time to record "${goal.label}" 🎙️`, taskId: goal.id, action: "record" };
