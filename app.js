@@ -735,7 +735,22 @@ document
     }
   );
 
+  
+  async function promptForNotifications() {
+  return new Promise((resolve) => {
+    const wantsNotifications = confirm(
+      "Enable notifications so Future You can remind you to record and check in? (Recommended)"
+    );
 
+    if (wantsNotifications) {
+      registerServiceWorker().then(() => {
+        enablePushNotifications().then(resolve);
+      });
+    } else {
+      resolve();
+    }
+  });
+}
 document
   .getElementById(
     "btn-finish-onboarding"
@@ -798,7 +813,7 @@ document
       await loadTodayEntries();
 
       await loadHistory();
-
+      await promptForNotifications();
       switchTab("home");
     }
   );
