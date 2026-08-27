@@ -58,11 +58,38 @@ console.log("Goals found:", goals?.length, "Subs found:", subs?.length, "Entries
     }
 
     if (payload) {
-      try {
-        await webpush.sendNotification(sub.subscription, JSON.stringify(payload));
-        sent++;
-      } catch (err) {
-        console.error("Push failed for user:", goal.user_id, err);
+      const type = recordDue ? "record" : "checkin";
+      const { data: log } = await supabase
+        .from("reminder_log")
+        .select("*")
+        .eq("goal_id", goal.id)
+        .eq("date", today)
+        .eq("type", type)
+        .maybeSingle();
+
+      const hoursSinceLastSend = log?.last_sent_at
+        ? (Date.now() - new Date(log.last_sent_at).getTime()) / (1000 * 60 * 60)
+        : 999;
+
+      const canSend = !log || (log.sent_count < 2 && hoursSinceLastSend >= 4);
+
+      if (canSend) {
+        try {
+          await webpush.sendNotification(sub.subscription, JSON.stringify(payload));
+          sent++;
+          await supabase.from("reminder_log").upsert(
+            {
+              goal_id: goal.id,
+              date: today,
+              type,
+              sent_count: (log?.sent_count || 0) + 1,
+              last_sent_at: new Date().toISOString(),
+            },
+            { onConflict: "goal_id,date,type" }
+          );
+        } catch (err) {
+          console.error("Push failed for user:", goal.user_id, err);
+        }
       }
     }
   }

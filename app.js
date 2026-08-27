@@ -253,6 +253,10 @@ document.getElementById("btn-settings-add-task").addEventListener("click", async
 
   await loadTasks();
   renderSettings();
+  const newTask = state.tasks.find((t) => t.label === label && t.record_time === recordTime);
+  if (newTask) {
+    promptRecordNow(newTask);
+  }
 });
 
 
@@ -813,6 +817,10 @@ document
       await loadHistory();
       await promptForNotifications();
       switchTab("home");
+      // Ask if they want to record their first task right now
+      if (state.tasks.length > 0) {
+        promptRecordNow(state.tasks[0]);
+      }
     }
   );
 
@@ -2398,4 +2406,15 @@ function showToast(message) {
   `;
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
+}
+
+function promptRecordNow(task) {
+  const recordNow = confirm(
+    `Task "${task.label}" is set! Do you want to record your voice note right now, or wait until ${to12h(task.record_time)}?\n\nClick OK to record now, or Cancel to wait for your scheduled time.`
+  );
+
+  if (recordNow) {
+    openRecordOverlay(task);
+  }
+  // If they say no, nothing happens now — they'll get the normal reminder at their set time
 }
