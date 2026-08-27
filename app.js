@@ -2292,6 +2292,22 @@ async function handleNotificationDeepLink() {
     const entry = state.todayEntries[taskId];
     if (entry?.audioUrl) {
       openCheckinOverlay(task, entry.audioUrl);
+
+      // Try to auto-play since this came from a direct notification tap (user gesture)
+      setTimeout(async () => {
+        const audio = document.getElementById("playback-audio");
+        try {
+          buildWaveform("checkin-waveform", true);
+          await audio.play();
+          audio.onended = () => {
+            buildWaveform("checkin-waveform", false);
+            document.getElementById("checkin-question").classList.remove("hidden");
+          };
+        } catch (err) {
+          // Autoplay was blocked by the browser — user can still tap the play button manually
+          console.log("Autoplay blocked, manual play still available:", err);
+        }
+      }, 300);
     }
   }
 
