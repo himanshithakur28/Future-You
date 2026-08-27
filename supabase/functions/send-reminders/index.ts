@@ -52,8 +52,10 @@ console.log("Goals found:", goals?.length, "Subs found:", subs?.length, "Entries
     
     let payload = null;
     if (recordDue) {
-  payload = { title: "Future You", body: `🎙️ Your future self is listening  what's the plan for "${goal.label}"?`, taskId: goal.id, action: "record" };
-} else if (checkinDue) {
+      if (recordDue) {
+  payload = { title: "Future You", body: `Time to record — what's your plan for "${goal.label}"?`, taskId: goal.id, action: "record" };
+}
+  } else if (checkinDue) {
   payload = { title: "Future You", body: `Morning-you left a message about "${goal.label}" 🎧`, taskId: goal.id, action: "checkin" };
 }
 
