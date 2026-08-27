@@ -739,20 +739,19 @@ document
 
   
   async function promptForNotifications() {
-  return new Promise((resolve) => {
-    const wantsNotifications = confirm(
-      "Enable notifications so Future You can remind you to record and check in? (Recommended)"
-    );
+  const wantsNotifications = await showCustomConfirm(
+    "Enable notifications?",
+    "Future You can remind you to record and check in — recommended for the app to actually work as intended.",
+    "Enable",
+    "Skip for now"
+  );
 
-    if (wantsNotifications) {
-      registerServiceWorker().then(() => {
-        enablePushNotifications().then(resolve);
-      });
-    } else {
-      resolve();
-    }
-  });
+  if (wantsNotifications) {
+    await registerServiceWorker();
+    await enablePushNotifications();
+  }
 }
+
 document
   .getElementById(
     "btn-finish-onboarding"
@@ -2280,7 +2279,30 @@ supabaseClient.auth.onAuthStateChange(
   }
 );
 
-
+function showCustomConfirm(title, message, yesText = "Yes", noText = "Not now") {
+  return new Promise((resolve) => {
+    document.getElementById("confirm-title").textContent = title;
+    document.getElementById("confirm-message").textContent = message;
+    document.getElementById("confirm-yes-btn").textContent = yesText;
+    document.getElementById("confirm-no-btn").textContent = noText;
+    showOverlay("overlay-custom-confirm");
+    const yesBtn = document.getElementById("confirm-yes-btn");
+    const noBtn = document.getElementById("confirm-no-btn");
+    const cleanup = () => {
+      hideOverlay("overlay-custom-confirm");
+      yesBtn.replaceWith(yesBtn.cloneNode(true));
+      noBtn.replaceWith(noBtn.cloneNode(true));
+    };
+    document.getElementById("confirm-yes-btn").addEventListener("click", () => {
+      cleanup();
+      resolve(true);
+    });
+    document.getElementById("confirm-no-btn").addEventListener("click", () => {
+      cleanup();
+      resolve(false);
+    });
+  });
+}
 // ============================================================
 // 26. INITIALIZE
 // ============================================================
@@ -2408,13 +2430,15 @@ function showToast(message) {
   setTimeout(() => toast.remove(), 3000);
 }
 
-function promptRecordNow(task) {
-  const recordNow = confirm(
-    `Task "${task.label}" is set! Do you want to record your voice note right now, or wait until ${to12h(task.record_time)}?\n\nClick OK to record now, or Cancel to wait for your scheduled time.`
+async function promptRecordNow(task) {
+  const recordNow = await showCustomConfirm(
+    `"${task.label}" is set!`,
+    `Want to record your voice note right now, or wait until ${to12h(task.record_time)}?`,
+    "Record now",
+    `Wait for ${to12h(task.record_time)}`
   );
 
   if (recordNow) {
     openRecordOverlay(task);
   }
-  // If they say no, nothing happens now — they'll get the normal reminder at their set time
 }
