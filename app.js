@@ -2213,8 +2213,13 @@ function renderSettings() {
   list.querySelectorAll(".remove-btn").forEach((button) => {
     button.addEventListener("click", async () => {
       const taskId = button.dataset.taskId;
-      const confirmDelete = confirm("Delete this task? This will also remove its recordings and history.");
-      if (!confirmDelete) return;
+     const confirmDelete = await showCustomConfirm(
+  "Delete this task?",
+  "This will also remove its recordings and history. This can't be undone.",
+  "Delete",
+  "Cancel"
+);
+if (!confirmDelete) return;
 
       const { error } = await supabaseClient.from("goals").delete().eq("id", taskId);
       if (error) {
